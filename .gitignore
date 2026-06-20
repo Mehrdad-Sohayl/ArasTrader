@@ -1,0 +1,49 @@
+# User-specific files
+*.user
+*.suo
+*.ntvsuser
+*.userosscache
+*.sln.docstates
+
+# Build results
+[Dd]ebug*/
+[Dd]ebug_public*/
+[Oo]bj*/
+[Bb]in/
+[Ee]xc/
+Logs/
+*.pid_bak
+*.pid
+
+# Visual Studio 2015 cache/options
+.vs/
+
+# Visual Studio 2017 cache/options
+.vscode/
+
+# Visual Studio 2019 cache
+.vs/
+
+# Crashlytics
+Crashlytics/
+
+# NuGet packages
+packages/
+
+# Test results
+TestResults/
+
+# Mac OS
+.DS_Store
+
+# IDE
+.idea/
+*.swp
+*.swo
+
+# Temporary files
+*~
+
+# Local settings
+local.settings.json
+./Properties/launchSettings.json
