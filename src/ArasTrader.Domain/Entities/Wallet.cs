@@ -9,6 +9,11 @@ public class Wallet
     public decimal AvailableBalance { get; private set; }
     public decimal ReservedBalance { get; private set; }
 
+    private Wallet()
+    {
+
+    }
+
     internal Wallet(
         int customerId,
         decimal availableBalance,
@@ -20,8 +25,8 @@ public class Wallet
     }
 
     public static Wallet Create(
-        int customerId, 
-        decimal availableBalance, 
+        int customerId,
+        decimal availableBalance,
         decimal reservedBalance)
     {
         if (customerId <= 0)

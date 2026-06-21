@@ -14,6 +14,12 @@ public class Customer
     public DateOnly BirthDate { get; private set; }
     public string BranchName { get; private set; }
     public string MobileNumber { get; private set; }
+    public DateTime CreatedAt { get; private set; }
+
+    private Customer()
+    {
+
+    }
 
     internal Customer(
         string nationalCode,
