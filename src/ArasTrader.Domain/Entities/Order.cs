@@ -19,6 +19,11 @@ public class Order
         get { return Quantity * Price; }
     }
 
+    private Order()
+    {
+        
+    }
+
     internal Order(
         int customerId,
         string symbol,
