@@ -1,6 +1,7 @@
 ﻿using ArasTrader.Application.Interfaces.Repositories;
 using ArasTrader.Domain.Entities;
 using ArasTrader.Infrastructure.Persistence.Contexts;
+using Microsoft.EntityFrameworkCore;
 
 namespace ArasTrader.Infrastructure.Repositories;
 
@@ -16,5 +17,10 @@ internal class CustomerRepository : ICustomerRepository
     public async Task AddAsync(Customer customer)
     {
         await _dbContext.Customers.AddAsync(customer);
+    }
+
+    public async Task<bool> ExistsByNationalCodeAsync(string nationalCode)
+    {
+        return await _dbContext.Customers.AnyAsync(c => c.NationalCode == nationalCode);
     }
 }

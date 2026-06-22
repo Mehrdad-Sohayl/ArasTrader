@@ -1,8 +1,10 @@
 ﻿using ArasTrader.Application.Interfaces;
 using ArasTrader.Application.Interfaces.Repositories;
 using ArasTrader.Infrastructure.Auth;
+using ArasTrader.Infrastructure.Caching.TokenManagement;
 using ArasTrader.Infrastructure.ExternalApis.ArasApi;
 using ArasTrader.Infrastructure.Options;
+using ArasTrader.Infrastructure.Persistence;
 using ArasTrader.Infrastructure.Persistence.Contexts;
 using ArasTrader.Infrastructure.Repositories;
 using Microsoft.EntityFrameworkCore;
@@ -39,7 +41,11 @@ public static class DependencyInjection
 
         services.AddRefitClients(configuration);
 
+        services.AddScoped<ICustomerGateway, ArasCustomerGateway>();
+
         services.Configure<ArasApiOptions>(configuration.GetRequiredSection(ArasApiOptions.SectionName));
+
+
         return services;
     }
 }
