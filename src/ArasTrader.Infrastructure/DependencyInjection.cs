@@ -26,17 +26,20 @@ public static class DependencyInjection
         });
 
 
+        services.AddScoped<IAuthTokenRepository, AuthTokenRepository>();
         services.AddScoped<ICustomerRepository, CustomerRepository>();
         services.AddScoped<IOrderRepository, OrderRepository>();
         services.AddScoped<IWalletRepository, WalletRepository>();
+        services.AddScoped<IUnitOfWork, UnitOfWork>();
 
         services.AddMemoryCache();
 
-        services.AddSingleton<ITokenStore, ITokenStore>();
-        services.AddSingleton<ITokenManager, TokenManager>();
+        services.AddScoped<ITokenStore, MemoryTokenStore>();
+        services.AddScoped<ITokenManager, TokenManager>();
 
         services.AddRefitClients(configuration);
 
+        services.Configure<ArasApiOptions>(configuration.GetRequiredSection(ArasApiOptions.SectionName));
         return services;
     }
 }
