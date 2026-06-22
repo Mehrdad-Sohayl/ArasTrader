@@ -1,4 +1,5 @@
 ﻿using ArasTrader.Application.Interfaces;
+using ArasTrader.Application.Interfaces.Repositories;
 using ArasTrader.Application.Models;
 using ArasTrader.Infrastructure.ExternalApis.ArasApi;
 using ArasTrader.Infrastructure.Options;
@@ -9,6 +10,8 @@ namespace ArasTrader.Infrastructure.Auth;
 internal class TokenManager : ITokenManager
 {
     private readonly ITokenStore _tokenStore;
+    private readonly IAuthTokenRepository _authTokenRepository;
+    private readonly IUnitOfWork _unitOfWork;
     private readonly IArasApiClient _arasApiClient;
     private readonly ArasApiOptions _arasApiOptions;
 
@@ -16,10 +19,14 @@ internal class TokenManager : ITokenManager
 
     public TokenManager(
         ITokenStore tokenStore,
+        IAuthTokenRepository authTokenRepository,
+        IUnitOfWork unitOfWork,
         IArasApiClient arasApiClient,
         IOptions<ArasApiOptions> arasApiOptions)
     {
         _tokenStore = tokenStore;
+        _authTokenRepository = authTokenRepository;
+        _unitOfWork = unitOfWork;
         _arasApiClient = arasApiClient;
         _arasApiOptions = arasApiOptions.Value;
     }
@@ -36,13 +43,16 @@ internal class TokenManager : ITokenManager
         try
         {
             cached = _tokenStore.Get();
+            if (cached == null)
+                cached = await _authTokenRepository.GetAsync();
             if (cached != null && !IsExpired(cached))
                 return cached.AccessToken;
 
             var newToken = await LoginAsync();
 
             _tokenStore.Save(newToken);
-
+            await _authTokenRepository.AddAsync(newToken);
+            await _unitOfWork.SaveChangesAsync();
             return newToken.AccessToken;
         }
         finally
