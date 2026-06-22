@@ -1,4 +1,5 @@
 ﻿using ArasTrader.Domain.Exceptions;
+using System.Runtime.InteropServices;
 
 namespace ArasTrader.Domain.Entities;
 
@@ -6,6 +7,7 @@ public class Wallet
 {
     public int Id { get; private set; }
     public int CustomerId { get; private set; }
+    public Customer Customer { get; private set; }
     public decimal AvailableBalance { get; private set; }
     public decimal ReservedBalance { get; private set; }
 
@@ -15,30 +17,28 @@ public class Wallet
     }
 
     internal Wallet(
+        Customer customer,
         int customerId,
         decimal availableBalance,
         decimal reservedBalance)
     {
-        CustomerId = customerId;
+        Customer = customer;
+        CustomerId = customer.Id;
         AvailableBalance = availableBalance;
         ReservedBalance = reservedBalance;
     }
 
     public static Wallet Create(
-        int customerId,
-        decimal availableBalance,
-        decimal reservedBalance)
+        Customer customer,
+        decimal availableBalance)
     {
-        if (customerId <= 0)
+        if (customer == null)
             throw new DomainException();
 
         if (availableBalance < 0)
             throw new DomainException();
 
-        if (reservedBalance < 0)
-            throw new DomainException();
-
-        return new Wallet(customerId, availableBalance, reservedBalance);
+        return new Wallet(customer, customer.Id, availableBalance, 0);
     }
 
     public void ReserveFunds(decimal amount)

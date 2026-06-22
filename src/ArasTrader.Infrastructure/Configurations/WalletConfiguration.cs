@@ -37,8 +37,8 @@ public sealed class WalletConfiguration : IEntityTypeConfiguration<Wallet>
             .IsRequired();
         builder.HasIndex(w => w.CustomerId)
             .IsUnique();
-        builder.HasOne<Customer>()
-            .WithOne()
+        builder.HasOne<Customer>(w => w.Customer)
+            .WithOne(c => c.Wallet)
             .HasForeignKey<Wallet>(w => w.CustomerId)
             .OnDelete(DeleteBehavior.Restrict);
     }

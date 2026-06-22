@@ -15,6 +15,7 @@ public class Customer
     public string BranchName { get; private set; }
     public string MobileNumber { get; private set; }
     public DateTime CreatedAt { get; private set; }
+    public Wallet Wallet { get; private set; }
 
     private Customer()
     {
@@ -41,6 +42,7 @@ public class Customer
         BirthDate = birthDate;
         BranchName = branchName;
         MobileNumber = mobileNumber;
+        CreatedAt = DateTime.UtcNow;
     }
 
     public static Customer Create(
