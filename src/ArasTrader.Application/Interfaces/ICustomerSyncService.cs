@@ -1,6 +1,9 @@
-﻿namespace ArasTrader.Application.Interfaces;
+﻿using ArasTrader.Application.Common;
+using ArasTrader.Application.DTOs;
+
+namespace ArasTrader.Application.Interfaces;
 
 public interface ICustomerSyncService
 {
-    Task SyncAsync(CancellationToken cancellationToken = default);
+    Task<Result<List<CustomerDto>>> SyncAsync(CancellationToken cancellationToken = default);
 }

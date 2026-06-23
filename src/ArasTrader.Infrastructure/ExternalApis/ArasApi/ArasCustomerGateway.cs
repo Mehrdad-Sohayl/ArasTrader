@@ -1,4 +1,5 @@
-﻿using ArasTrader.Application.DTOs;
+﻿using ArasTrader.Application.Common;
+using ArasTrader.Application.DTOs;
 using ArasTrader.Application.Interfaces;
 
 namespace ArasTrader.Infrastructure.ExternalApis.ArasApi;
@@ -12,11 +13,13 @@ internal class ArasCustomerGateway : ICustomerGateway
         _arasApiClient = arasApiClient;
     }
 
-    public async Task<List<CustomerDto>> GetCustomerAsync(string accessToken)
+    public async Task<Result<List<CustomerDto>>> GetCustomerAsync(string accessToken)
     {
         var customers = await _arasApiClient.GetCustomersAsync($"Bearer {accessToken}");
+        if (customers == null || !customers.Any())
+            return Result<List<CustomerDto>>.Failure(new ApplicationError(ApplicationErrorCodes.CannotRetriveCustomers, ApplicationErrorCodes.CannotRetriveCustomers));
 
-        return customers.Select(customers => new CustomerDto
+        var result = customers.Select(customers => new CustomerDto
         {
             NationalCode = customers.NationalCode,
             FirstName = customers.FirstName,
@@ -28,6 +31,8 @@ internal class ArasCustomerGateway : ICustomerGateway
             BranchName = customers.BranchName,
             MobileNumber = customers.MobileNumber
         }).ToList();
+
+        return Result<List<CustomerDto>>.Success(result);
     }
 
 

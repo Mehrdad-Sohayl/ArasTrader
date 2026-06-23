@@ -26,7 +26,16 @@ public class OrdersController : ControllerBase
             price: request.Price,
             type: request.Type);
 
-        var orderId = await _orderService.CreateOrderAsync(createOrderRequest, cancellationToken);
+        var result = await _orderService.CreateOrderAsync(createOrderRequest, cancellationToken);
+
+        if (result.IsSuccess)
+            return Ok(result);
+
+        if (result != null && result.Errors.Any())
+            return BadRequest(result.Errors.FirstOrDefault()!.Message);
+
+        return BadRequest();
+    }
 
         return Ok(new CreateOrderResponse { OrderId = orderId });
     }

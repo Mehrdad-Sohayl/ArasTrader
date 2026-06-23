@@ -17,10 +17,14 @@ public class CustomersController : ControllerBase
     [HttpPost("sync")]
     public async Task<IActionResult> SyncCustomers(CancellationToken cancellationToken)
     {
-        await _customerSyncService.SyncAsync(cancellationToken);
-        return Ok(new
-        {
-            message = "Customer sync completed."
-        });
+        var result = await _customerSyncService.SyncAsync(cancellationToken);
+
+        if (result.IsSuccess)
+            return Ok(result);
+
+        if (result != null && result.Errors.Any())
+            return BadRequest(result.Errors.FirstOrDefault()!.Message);
+
+        return BadRequest();
     }
 }

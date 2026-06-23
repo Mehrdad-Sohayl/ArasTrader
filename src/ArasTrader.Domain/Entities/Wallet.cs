@@ -1,5 +1,5 @@
-﻿using ArasTrader.Domain.Exceptions;
-using System.Runtime.InteropServices;
+﻿using ArasTrader.Domain.Common;
+using ArasTrader.Domain.Exceptions;
 
 namespace ArasTrader.Domain.Entities;
 
@@ -34,10 +34,10 @@ public class Wallet
         decimal availableBalance)
     {
         if (customer == null)
-            throw new DomainException();
+            throw new DomainException(new DomainError(DomainErrorCodes.CustomerNotFound,DomainErrorCodes.CustomerNotFound));
 
         if (availableBalance < 0)
-            throw new DomainException();
+            throw new DomainException(new DomainError(DomainErrorCodes.InsufficientBalance,DomainErrorCodes.InsufficientBalance));
 
         return new Wallet(customer, customer.Id, availableBalance, 0);
     }
@@ -45,10 +45,10 @@ public class Wallet
     public void ReserveFunds(decimal amount)
     {
         if (amount <= 0)
-            throw new DomainException();
+            throw new DomainException(new DomainError(DomainErrorCodes.InvalidAmount,DomainErrorCodes.InvalidAmount));
 
         if (AvailableBalance < amount)
-            throw new DomainException();
+            throw new DomainException(new DomainError(DomainErrorCodes.InsufficientBalance,DomainErrorCodes.InsufficientBalance));
 
         AvailableBalance -= amount;
         ReservedBalance += amount;
@@ -57,10 +57,10 @@ public class Wallet
     public void ReleaseFunds(decimal amount)
     {
         if (amount <= 0)
-            throw new DomainException();
+            throw new DomainException(new DomainError(DomainErrorCodes.InvalidAmount,DomainErrorCodes.InvalidAmount));
 
         if (ReservedBalance < amount)
-            throw new DomainException();
+            throw new DomainException(new DomainError(DomainErrorCodes.InsufficientBalance,DomainErrorCodes.InsufficientBalance));
 
         ReservedBalance -= amount;
         AvailableBalance += amount;
@@ -69,10 +69,10 @@ public class Wallet
     public void FinalizeReservation(decimal amount)
     {
         if (amount <= 0)
-            throw new DomainException();
+            throw new DomainException(new DomainError(DomainErrorCodes.InvalidAmount,DomainErrorCodes.InvalidAmount));
 
         if (ReservedBalance < amount)
-            throw new DomainException();
+            throw new DomainException(new DomainError(DomainErrorCodes.InsufficientBalance,DomainErrorCodes.InsufficientBalance));
 
         ReservedBalance -= amount;
     }
@@ -80,7 +80,7 @@ public class Wallet
     public void Credit(decimal amount)
     {
         if (amount <= 0)
-            throw new DomainException();
+            throw new DomainException(new DomainError(DomainErrorCodes.InvalidAmount,DomainErrorCodes.InvalidAmount));
 
         AvailableBalance += amount;
     }

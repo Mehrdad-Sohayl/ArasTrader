@@ -1,4 +1,5 @@
-﻿using ArasTrader.Application.Exceptions;
+﻿using ArasTrader.Application.Common;
+using ArasTrader.Application.Exceptions;
 using ArasTrader.Application.Interfaces;
 using ArasTrader.Application.Interfaces.Repositories;
 using ArasTrader.Application.Models.Orders;
@@ -27,15 +28,15 @@ public class OrderService : IOrderService
         _unitOfWork = unitOfWork;
     }
 
-    public async Task<int> CreateOrderAsync(CreateOrderRequest request, CancellationToken cancellationToken = default)
+    public async Task<Result<int>> CreateOrderAsync(CreateOrderRequest request, CancellationToken cancellationToken = default)
     {
         var customer = await _customerRepository.GetByIdAsync(request.CustomerId);
         if (customer == null)
-            throw new ApplicationException();
+            return Result<int>.Failure(new ApplicationError(ApplicationErrorCodes.CustomerNotFound, ApplicationErrorCodes.CustomerNotFound));
 
         var wallet = await _walletRepository.GetByCustomerIdAsync(request.CustomerId);
         if (wallet == null)
-            throw new ApplicationException();
+            return Result<int>.Failure(new ApplicationError(ApplicationErrorCodes.WalletNotFound, ApplicationErrorCodes.WalletNotFound));
 
         var order = Order.Create(
             customerId: request.CustomerId,
@@ -47,10 +48,19 @@ public class OrderService : IOrderService
         if (request.Type == OrderType.Buy)
         {
             wallet.ReserveFunds(order.Amount);
+
+        try
+        {
             await _orderRepository.AddAsync(order);
             await _unitOfWork.SaveChangesAsync();
         }
-        else
+        catch (Exception ex)
+        {
+            return Result<int>.Failure(new ApplicationError(ApplicationErrorCodes.ConcurrencyException, ex.Message));
+        }
+
+        return Result<int>.Success(order.Id);
+    }
         {
             await _orderRepository.AddAsync(order);
             await _unitOfWork.SaveChangesAsync();

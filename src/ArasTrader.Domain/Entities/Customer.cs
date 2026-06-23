@@ -1,4 +1,5 @@
-﻿using ArasTrader.Domain.Exceptions;
+﻿using ArasTrader.Domain.Common;
+using ArasTrader.Domain.Exceptions;
 
 namespace ArasTrader.Domain.Entities;
 
@@ -70,7 +71,7 @@ public class Customer
             string.IsNullOrWhiteSpace(mobileNumber) ||
             mobileNumber.Length != 11 ||
             !mobileNumber.All(char.IsDigit))
-            throw new DomainException();
+            throw new DomainException(new DomainError(DomainErrorCodes.CannotCreateCustomer, DomainErrorCodes.CannotCreateCustomer));
 
         return new Customer(
             nationalCode,
