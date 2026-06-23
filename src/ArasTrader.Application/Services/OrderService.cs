@@ -11,6 +11,8 @@ namespace ArasTrader.Application.Services;
 
 public class OrderService : IOrderService
 {
+    private const int MaxRetries = 20;
+
     private readonly ICustomerRepository _customerRepository;
     private readonly IWalletRepository _walletRepository;
     private readonly IOrderRepository _orderRepository;
@@ -46,7 +48,6 @@ public class OrderService : IOrderService
             type: request.Type);
 
         if (request.Type == OrderType.Buy)
-        {
             wallet.ReserveFunds(order.Amount);
 
         try
@@ -61,12 +62,46 @@ public class OrderService : IOrderService
 
         return Result<int>.Success(order.Id);
     }
+
+    public async Task<Result<int>> EditOrderAsync(EditOrderRequest request, CancellationToken cancellationToken)
+    {
+        for (var attempt = 0; attempt < MaxRetries; attempt++)
         {
-            await _orderRepository.AddAsync(order);
-            await _unitOfWork.SaveChangesAsync();
+            try
+            {
+                var result = await InnerEditOrderAsync(request, cancellationToken);
+                return Result<int>.Success(result);
+            }
+            catch (ConcurrencyException)
+            {
+                _unitOfWork.ClearTracking();
+            }
         }
 
+        return Result<int>.Failure(new ApplicationError(ApplicationErrorCodes.CannotEditOrder, ApplicationErrorCodes.CannotEditOrder));
+    }
 
+    private async Task<int> InnerEditOrderAsync(EditOrderRequest request, CancellationToken cancellationToken)
+    {
+        var order = await _orderRepository.GetByIdAsync(request.OrderId);
+        if (order == null)
+            throw new ApplicationException(new ApplicationError(ApplicationErrorCodes.OrderNotFound, ApplicationErrorCodes.OrderNotFound));
+
+        var wallet = await _walletRepository.GetByCustomerIdAsync(order.CustomerId);
+        if (wallet == null)
+            throw new ApplicationException(new ApplicationError(ApplicationErrorCodes.WalletNotFound, ApplicationErrorCodes.WalletNotFound));
+
+        var newAmount = request.Price * request.Quantity;
+        var delta = newAmount - order.Amount;
+
+        if (delta > 0)
+            wallet.ReserveFunds(delta);
+
+        if (delta < 0)
+            wallet.ReleaseFunds(Math.Abs(delta));
+
+        order.Edit(request.Quantity, request.Price);
+        await _unitOfWork.SaveChangesAsync();
         return order.Id;
     }
 }
