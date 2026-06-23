@@ -10,6 +10,7 @@ public class Wallet
     public Customer Customer { get; private set; }
     public decimal AvailableBalance { get; private set; }
     public decimal ReservedBalance { get; private set; }
+    public uint Version { get; set; }
 
     private Wallet()
     {

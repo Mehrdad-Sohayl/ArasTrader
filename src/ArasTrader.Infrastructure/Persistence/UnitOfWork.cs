@@ -1,5 +1,6 @@
 ﻿using ArasTrader.Application.Interfaces;
 using ArasTrader.Infrastructure.Persistence.Contexts;
+using Microsoft.EntityFrameworkCore;
 
 namespace ArasTrader.Infrastructure.Persistence;
 
@@ -14,6 +15,13 @@ internal class UnitOfWork : IUnitOfWork
 
     public async Task SaveChangesAsync(CancellationToken cancellationToken = default)
     {
-        await _dbContext.SaveChangesAsync(cancellationToken);
+        try
+        {
+            await _dbContext.SaveChangesAsync(cancellationToken);
+        }
+        catch (DbUpdateConcurrencyException)
+        {
+            throw new Application.Exceptions.ApplicationException();
+        }
     }
 }
