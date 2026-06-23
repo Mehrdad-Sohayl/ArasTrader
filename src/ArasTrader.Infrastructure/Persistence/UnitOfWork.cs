@@ -1,4 +1,6 @@
-﻿using ArasTrader.Application.Interfaces;
+﻿using ArasTrader.Application.Common;
+using ArasTrader.Application.Exceptions;
+using ArasTrader.Application.Interfaces;
 using ArasTrader.Infrastructure.Persistence.Contexts;
 using Microsoft.EntityFrameworkCore;
 
@@ -13,6 +15,11 @@ internal class UnitOfWork : IUnitOfWork
         _dbContext = dbContext;
     }
 
+    public void ClearTracking()
+    {
+        _dbContext.ChangeTracker.Clear();
+    }
+
     public async Task SaveChangesAsync(CancellationToken cancellationToken = default)
     {
         try
@@ -21,7 +28,7 @@ internal class UnitOfWork : IUnitOfWork
         }
         catch (DbUpdateConcurrencyException)
         {
-            throw new Application.Exceptions.ApplicationException();
+            throw new ConcurrencyException(new ApplicationError(ApplicationErrorCodes.ConcurrencyException, ApplicationErrorCodes.ConcurrencyException));
         }
     }
 }

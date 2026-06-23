@@ -14,6 +14,7 @@ public class Order
     public OrderStatus Status { get; private set; }
     public DateTime CreatedAt { get; private set; }
     public DateTime ModifiedAt { get; private set; }
+    public uint Version { get; set; }
     public decimal Amount
     {
         get { return Quantity * Price; }
