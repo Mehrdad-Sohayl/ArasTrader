@@ -12,7 +12,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace ArasTrader.Infrastructure.Migrations
 {
     [DbContext(typeof(ArasTraderDbContext))]
-    [Migration("20260621125054_InitialCreate")]
+    [Migration("20260623184940_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />
@@ -24,6 +24,36 @@ namespace ArasTrader.Infrastructure.Migrations
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
+
+            modelBuilder.Entity("ArasTrader.Application.Models.TokenState", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("AccessToken")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp with time zone")
+                        .HasDefaultValueSql("CURRENT_TIMESTAMP");
+
+                    b.Property<DateTime>("ExpiresAtUtc")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTime>("ModifiedAt")
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("timestamp with time zone")
+                        .HasDefaultValueSql("CURRENT_TIMESTAMP");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("AuthTokens", (string)null);
+                });
 
             modelBuilder.Entity("ArasTrader.Domain.Entities.Customer", b =>
                 {
@@ -48,7 +78,8 @@ namespace ArasTrader.Infrastructure.Migrations
 
                     b.Property<DateTime>("CreatedAt")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("date");
+                        .HasColumnType("timestamp with time zone")
+                        .HasDefaultValueSql("CURRENT_TIMESTAMP");
 
                     b.Property<string>("FatherName")
                         .IsRequired()
@@ -98,13 +129,16 @@ namespace ArasTrader.Infrastructure.Migrations
 
                     b.Property<DateTime>("CreatedAt")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("timestamp with time zone");
+                        .HasColumnType("timestamp with time zone")
+                        .HasDefaultValueSql("CURRENT_TIMESTAMP");
 
                     b.Property<int>("CustomerId")
                         .HasColumnType("integer");
 
                     b.Property<DateTime>("ModifiedAt")
-                        .HasColumnType("timestamp with time zone");
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("timestamp with time zone")
+                        .HasDefaultValueSql("CURRENT_TIMESTAMP");
 
                     b.Property<decimal>("Price")
                         .HasPrecision(18, 2)
@@ -123,6 +157,12 @@ namespace ArasTrader.Infrastructure.Migrations
 
                     b.Property<int>("Type")
                         .HasColumnType("integer");
+
+                    b.Property<uint>("Version")
+                        .IsConcurrencyToken()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("xid")
+                        .HasColumnName("xmin");
 
                     b.HasKey("Id");
 
@@ -152,6 +192,12 @@ namespace ArasTrader.Infrastructure.Migrations
                         .HasPrecision(18, 2)
                         .HasColumnType("numeric(18,2)");
 
+                    b.Property<uint>("Version")
+                        .IsConcurrencyToken()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("xid")
+                        .HasColumnName("xmin");
+
                     b.HasKey("Id");
 
                     b.HasIndex("CustomerId")
@@ -176,10 +222,18 @@ namespace ArasTrader.Infrastructure.Migrations
 
             modelBuilder.Entity("ArasTrader.Domain.Entities.Wallet", b =>
                 {
-                    b.HasOne("ArasTrader.Domain.Entities.Customer", null)
-                        .WithOne()
+                    b.HasOne("ArasTrader.Domain.Entities.Customer", "Customer")
+                        .WithOne("Wallet")
                         .HasForeignKey("ArasTrader.Domain.Entities.Wallet", "CustomerId")
                         .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Customer");
+                });
+
+            modelBuilder.Entity("ArasTrader.Domain.Entities.Customer", b =>
+                {
+                    b.Navigation("Wallet")
                         .IsRequired();
                 });
 #pragma warning restore 612, 618
