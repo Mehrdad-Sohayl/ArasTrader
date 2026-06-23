@@ -42,7 +42,10 @@ public sealed class WalletConfiguration : IEntityTypeConfiguration<Wallet>
             .HasForeignKey<Wallet>(w => w.CustomerId)
             .OnDelete(DeleteBehavior.Restrict);
 
-        builder.Property(x => x.Version)
-            .IsConcurrencyToken();
+        builder.Property(w => w.Version)
+            .HasColumnName("xmin")
+            .HasColumnType("xid")
+            .IsConcurrencyToken()
+            .ValueGeneratedOnAddOrUpdate();
     }
 }
