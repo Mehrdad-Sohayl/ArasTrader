@@ -1,4 +1,5 @@
-﻿using ArasTrader.Domain.Enums;
+﻿using ArasTrader.Domain.Common;
+using ArasTrader.Domain.Enums;
 using ArasTrader.Domain.Exceptions;
 
 namespace ArasTrader.Domain.Entities;
@@ -22,7 +23,7 @@ public class Order
 
     private Order()
     {
-        
+
     }
 
     internal Order(
@@ -51,16 +52,16 @@ public class Order
         OrderType type)
     {
         if (customerId <= 0)
-            throw new DomainException();
+            throw new DomainException(new DomainError(DomainErrorCodes.CustomerNotFound, DomainErrorCodes.CustomerNotFound));
 
         if (string.IsNullOrWhiteSpace(symbol))
-            throw new DomainException();
+            throw new DomainException(new DomainError(DomainErrorCodes.InvalidSymbol, DomainErrorCodes.InvalidSymbol));
 
         if (quantity <= 0)
-            throw new DomainException();
+            throw new DomainException(new DomainError(DomainErrorCodes.InvalidQuantity, DomainErrorCodes.InvalidQuantity));
 
         if (price <= 0)
-            throw new DomainException();
+            throw new DomainException(new DomainError(DomainErrorCodes.InvalidPrice, DomainErrorCodes.InvalidPrice));
 
         return new Order(
             customerId,
@@ -75,13 +76,13 @@ public class Order
     public void Edit(int quantity, decimal price)
     {
         if (Status != OrderStatus.Pending)
-            throw new DomainException();
+            throw new DomainException(new DomainError(DomainErrorCodes.InvalidOrderState, DomainErrorCodes.InvalidOrderState));
 
         if (quantity <= 0)
-            throw new DomainException();
+            throw new DomainException(new DomainError(DomainErrorCodes.InvalidQuantity, DomainErrorCodes.InvalidQuantity));
 
         if (price <= 0)
-            throw new DomainException();
+            throw new DomainException(new DomainError(DomainErrorCodes.InvalidPrice, DomainErrorCodes.InvalidPrice));
 
         Quantity = quantity;
         Price = price;
@@ -91,7 +92,7 @@ public class Order
     public void MarkInProgress()
     {
         if (Status != OrderStatus.Pending)
-            throw new DomainException();
+            throw new DomainException(new DomainError(DomainErrorCodes.InvalidOrderState, DomainErrorCodes.InvalidOrderState));
 
         Status = OrderStatus.InProgress;
         ModifiedAt = DateTime.UtcNow;
@@ -100,7 +101,7 @@ public class Order
     public void MarkCompleted()
     {
         if (Status != OrderStatus.InProgress)
-            throw new DomainException();
+            throw new DomainException(new DomainError(DomainErrorCodes.InvalidOrderState, DomainErrorCodes.InvalidOrderState));
 
         Status = OrderStatus.Completed;
         ModifiedAt = DateTime.UtcNow;
@@ -109,7 +110,7 @@ public class Order
     public void MarkRejected()
     {
         if (Status != OrderStatus.InProgress)
-            throw new DomainException();
+            throw new DomainException(new DomainError(DomainErrorCodes.InvalidOrderState, DomainErrorCodes.InvalidOrderState));
 
         Status = OrderStatus.Rejected;
         ModifiedAt = DateTime.UtcNow;

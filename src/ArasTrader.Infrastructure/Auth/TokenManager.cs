@@ -1,4 +1,5 @@
-﻿using ArasTrader.Application.Interfaces;
+﻿using ArasTrader.Application.Common;
+using ArasTrader.Application.Interfaces;
 using ArasTrader.Application.Interfaces.Repositories;
 using ArasTrader.Application.Models;
 using ArasTrader.Infrastructure.ExternalApis.ArasApi;
@@ -31,12 +32,12 @@ internal class TokenManager : ITokenManager
         _arasApiOptions = arasApiOptions.Value;
     }
 
-    public async Task<string> GetValidTokenAsync()
+    public async Task<Result<string>> GetValidTokenAsync()
     {
         var cached = _tokenStore.Get();
 
         if (cached != null && !IsExpired(cached))
-            return cached.AccessToken;
+            return Result<string>.Success(cached.AccessToken);
 
         await _lock.WaitAsync();
 
@@ -46,14 +47,16 @@ internal class TokenManager : ITokenManager
             if (cached == null)
                 cached = await _authTokenRepository.GetAsync();
             if (cached != null && !IsExpired(cached))
-                return cached.AccessToken;
+                return Result<string>.Success(cached.AccessToken);
 
             var newToken = await LoginAsync();
+            if (newToken == null || !newToken.IsSuccess)
+                return Result<string>.Failure(newToken!.Errors!.First());
 
-            _tokenStore.Save(newToken);
-            await _authTokenRepository.AddAsync(newToken);
+            _tokenStore.Save(newToken.Value);
+            await _authTokenRepository.AddAsync(newToken.Value);
             await _unitOfWork.SaveChangesAsync();
-            return newToken.AccessToken;
+            return Result<string>.Success(newToken.Value.AccessToken);
         }
         finally
         {
@@ -66,7 +69,7 @@ internal class TokenManager : ITokenManager
         return token.ExpiresAtUtc < DateTime.UtcNow.AddSeconds(30);
     }
 
-    private async Task<TokenState> LoginAsync()
+    private async Task<Result<TokenState>> LoginAsync()
     {
         const int maxRetries = 3;
 
@@ -74,27 +77,33 @@ internal class TokenManager : ITokenManager
         {
             try
             {
-
                 var response = await _arasApiClient.GetTokenAsync(new LoginRequest
                 {
                     Username = _arasApiOptions.Username,
                     Password = _arasApiOptions.Password
                 });
-                return new TokenState
+
+                var result = new TokenState
                 {
                     AccessToken = response.AccessToken,
                     ExpiresAtUtc = response.ExpiresAtUtc
                 };
+
+                return Result<TokenState>.Success(result);
 
             }
             catch (Exception ex) when (IsTransient(ex) && attempt < maxRetries)
             {
                 await Task.Delay(1000 * attempt);
             }
+            catch (Exception ex)
+            {
+                return Result<TokenState>.Failure(new ApplicationError(ApplicationErrorCodes.CannotRetriveToken, ex.Message));
+            }
+
         }
 
-        throw new Exception("Failed to retrive token after retries.");
-
+        return Result<TokenState>.Failure(new ApplicationError(ApplicationErrorCodes.CannotRetriveToken, ApplicationErrorCodes.CannotRetriveToken));
     }
 
     private bool IsTransient(Exception ex)

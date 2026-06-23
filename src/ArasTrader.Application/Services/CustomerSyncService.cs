@@ -1,4 +1,6 @@
-﻿using ArasTrader.Application.Interfaces;
+﻿using ArasTrader.Application.Common;
+using ArasTrader.Application.DTOs;
+using ArasTrader.Application.Interfaces;
 using ArasTrader.Application.Interfaces.Repositories;
 using ArasTrader.Domain.Entities;
 
@@ -26,13 +28,17 @@ public class CustomerSyncService : ICustomerSyncService
         _unitOfWork = unitOfWork;
     }
 
-    public async Task SyncAsync(CancellationToken cancellationToken = default)
+    public async Task<Result<List<CustomerDto>>> SyncAsync(CancellationToken cancellationToken = default)
     {
         var token = await _tokenManager.GetValidTokenAsync();
+        if (!token.IsSuccess)
+            return Result<List<CustomerDto>>.Failure(token.Errors.First());
 
-        var customers = await _customerGateway.GetCustomerAsync(token);
+        var customers = await _customerGateway.GetCustomerAsync(token.Value);
+        if (!customers.IsSuccess)
+            return Result<List<CustomerDto>>.Failure(token.Errors.First());
 
-        foreach (var c in customers)
+        foreach (var c in customers.Value)
         {
             var exists = await _customerRepository.ExistsByNationalCodeAsync(c.NationalCode);
 
@@ -60,6 +66,9 @@ public class CustomerSyncService : ICustomerSyncService
             await _walletRepository.AddAsync(wallet);
 
             await _unitOfWork.SaveChangesAsync();
+
         }
+
+        return Result<List<CustomerDto>>.Success(customers.Value);
     }
 }

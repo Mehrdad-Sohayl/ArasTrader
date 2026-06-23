@@ -1,8 +1,9 @@
-﻿using ArasTrader.Application.Models.Wallets;
+﻿using ArasTrader.Application.Common;
+using ArasTrader.Application.Models.Wallets;
 
 namespace ArasTrader.Application.Interfaces;
 
 public interface IWalletService
 {
-    Task Deposit(DepositWalletRequest request, CancellationToken cancellationToken);
+    Task<Result<decimal>> Deposit(DepositWalletRequest request, CancellationToken cancellationToken);
 }

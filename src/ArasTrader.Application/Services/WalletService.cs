@@ -1,4 +1,5 @@
-﻿using ArasTrader.Application.Interfaces;
+﻿using ArasTrader.Application.Common;
+using ArasTrader.Application.Interfaces;
 using ArasTrader.Application.Interfaces.Repositories;
 using ArasTrader.Application.Models.Wallets;
 using ApplicationException = ArasTrader.Application.Exceptions.ApplicationException;
@@ -21,19 +22,21 @@ internal class WalletService : IWalletService
         _unitOfWork = unitOfWork;
     }
 
-    public async Task Deposit(DepositWalletRequest request, CancellationToken cancellationToken = default)
+    public async Task<Result<decimal>> Deposit(DepositWalletRequest request, CancellationToken cancellationToken = default)
     {
         var customer = await _customerRepository.GetByIdAsync(request.CustomerId);
         if (customer == null)
-            throw new ApplicationException();
+            return Result<decimal>.Failure(new ApplicationError(ApplicationErrorCodes.CustomerNotFound, ApplicationErrorCodes.CustomerNotFound));
 
         var wallet = await _walletRepository.GetByCustomerIdAsync(request.CustomerId);
         if (wallet == null)
-            throw new ApplicationException();
+            return Result<decimal>.Failure(new ApplicationError(ApplicationErrorCodes.WalletNotFound, ApplicationErrorCodes.WalletNotFound));
 
         wallet.Credit(request.Amount);
 
         _walletRepository.DepositAsync(wallet);
         await _unitOfWork.SaveChangesAsync();
+
+        return Result<decimal>.Success(wallet.AvailableBalance);
     }
 }

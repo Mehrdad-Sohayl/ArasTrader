@@ -5,7 +5,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace ArasTrader.Api.Controllers;
 
 [ApiController]
-[Route("/api/wallet")]
+[Route("api/wallet")]
 public class WalletController : ControllerBase
 {
     private readonly IWalletService _walletService;
@@ -22,11 +22,15 @@ public class WalletController : ControllerBase
             customerId: request.CustomerId,
             amount: request.Amount);
 
-        await _walletService.Deposit(depositWalletRequest, cancellationToken);
-        return Ok(new
-        {
-            message = "Wallet deposit successfully."
-        });
+        var result = await _walletService.Deposit(depositWalletRequest, cancellationToken);
+
+        if (result.IsSuccess)
+            return Ok(result);
+
+        if (result != null && result.Errors.Any())
+            return BadRequest(result.Errors.FirstOrDefault()!.Message);
+
+        return BadRequest();
     }
 
 }

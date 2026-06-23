@@ -1,6 +1,8 @@
-﻿namespace ArasTrader.Application.Interfaces;
+﻿using ArasTrader.Application.Common;
+
+namespace ArasTrader.Application.Interfaces;
 
 public interface ITokenManager
 {
-    Task<string> GetValidTokenAsync();
+    Task<Result<string>> GetValidTokenAsync();
 }
