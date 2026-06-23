@@ -37,6 +37,22 @@ public class OrdersController : ControllerBase
         return BadRequest();
     }
 
-        return Ok(new CreateOrderResponse { OrderId = orderId });
+    [HttpPut("{id}")]
+    public async Task<IActionResult> Edit(int id, Contracts.Orders.EditOrderRequest request, CancellationToken cancellationToken)
+    {
+        var createOrderRequest = new Application.Models.Orders.EditOrderRequest(
+            orderId: id,
+            quantity: request.Quantity,
+            price: request.Price);
+
+        var result = await _orderService.EditOrderAsync(createOrderRequest, cancellationToken);
+
+        if (result.IsSuccess)
+            return Ok(result);
+
+        if (result != null && result.Errors.Any())
+            return BadRequest(result.Errors.FirstOrDefault()!.Message);
+
+        return BadRequest();
     }
 }
