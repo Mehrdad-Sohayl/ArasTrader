@@ -45,10 +45,17 @@ public class OrderService : IOrderService
             type: request.Type);
 
         if (request.Type == OrderType.Buy)
+        {
             wallet.ReserveFunds(order.Amount);
+            await _orderRepository.AddAsync(order);
+            await _unitOfWork.SaveChangesAsync();
+        }
+        else
+        {
+            await _orderRepository.AddAsync(order);
+            await _unitOfWork.SaveChangesAsync();
+        }
 
-        await _orderRepository.AddAsync(order);
-        await _unitOfWork.SaveChangesAsync();
 
         return order.Id;
     }

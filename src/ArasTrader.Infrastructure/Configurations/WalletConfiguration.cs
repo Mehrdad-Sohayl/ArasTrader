@@ -41,5 +41,8 @@ public sealed class WalletConfiguration : IEntityTypeConfiguration<Wallet>
             .WithOne(c => c.Wallet)
             .HasForeignKey<Wallet>(w => w.CustomerId)
             .OnDelete(DeleteBehavior.Restrict);
+
+        builder.Property(x => x.Version)
+            .IsConcurrencyToken();
     }
 }
