@@ -1,6 +1,7 @@
 ﻿using ArasTrader.Application.Interfaces.Repositories;
 using ArasTrader.Domain.Entities;
 using ArasTrader.Infrastructure.Persistence.Contexts;
+using Microsoft.EntityFrameworkCore;
 
 namespace ArasTrader.Infrastructure.Repositories;
 
@@ -16,5 +17,15 @@ internal class WalletRepository : IWalletRepository
     public async Task AddAsync(Wallet wallet)
     {
         await _dbContext.Wallets.AddAsync(wallet);
+    }
+
+    public void DepositAsync(Wallet wallet)
+    {
+        _dbContext.Wallets.Update(wallet);
+    }
+
+    public async Task<Wallet?> GetByCustomerIdAsync(int customerId)
+    {
+        return await _dbContext.Wallets.SingleOrDefaultAsync(w => w.CustomerId == customerId);
     }
 }
