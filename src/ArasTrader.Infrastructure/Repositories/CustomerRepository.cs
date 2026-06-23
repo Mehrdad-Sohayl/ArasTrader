@@ -19,8 +19,18 @@ internal class CustomerRepository : ICustomerRepository
         await _dbContext.Customers.AddAsync(customer);
     }
 
+    public async Task<bool> ExistsByIdAsync(int customerId)
+    {
+        return await _dbContext.Customers.AnyAsync(c => c.Id == customerId);
+    }
+
     public async Task<bool> ExistsByNationalCodeAsync(string nationalCode)
     {
         return await _dbContext.Customers.AnyAsync(c => c.NationalCode == nationalCode);
+    }
+
+    public async Task<Customer?> GetByIdAsync(int customerId)
+    {
+        return await _dbContext.Customers.SingleOrDefaultAsync(c => c.Id == customerId);
     }
 }

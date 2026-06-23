@@ -6,4 +6,6 @@ public interface ICustomerRepository
 {
     Task AddAsync(Customer customer);
     Task<bool> ExistsByNationalCodeAsync(string nationalCode);
+    Task<bool> ExistsByIdAsync(int customerId);
+    Task<Customer?> GetByIdAsync(int customerId);
 }
