@@ -1,5 +1,6 @@
-using ArasTrader.Infrastructure;
+using ArasTrader.Api.Middlewares;
 using ArasTrader.Application;
+using ArasTrader.Infrastructure;
 
 
 var builder = WebApplication.CreateBuilder(args);
@@ -19,6 +20,8 @@ if (app.Environment.IsDevelopment())
     app.UseSwagger();
     app.UseSwaggerUI();
 }
+
+app.UseMiddleware<ExceptionHandlingMiddleware>();
 
 app.UseHttpsRedirection();
 app.MapControllers();
