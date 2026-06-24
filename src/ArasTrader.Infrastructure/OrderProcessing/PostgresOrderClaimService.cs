@@ -24,36 +24,37 @@ internal class PostgresOrderClaimService : IOrderClaimService
         _orderProcessingOptions = orderProcessingOptions.Value;
     }
 
-    public async Task<IReadOnlyList<int>> ClaimPendingOrdersAsync(int batchSize, CancellationToken cancellationToken)
+    public async Task<IReadOnlyList<int>> ClaimPendingOrdersAsync(CancellationToken cancellationToken)
     {
         const string sql = """
-                WITH claimedOrders AS (
-                SELECT Id
-                FROM Orders
-                WHERE
+                WITH claimed_orders AS
                 (
-                Status = @pendingStatus
+                    SELECT "Id"
+                    FROM public."Orders"
+                    WHERE
+                    (
+                        "Status" = @pendingStatus
+                    )
+                    OR
+                    (
+                        "Status" = @inProgressStatus
+                        AND "ProcessingStartedAt" <= NOW() - @processingTimeout
+                    )
+                    ORDER BY "CreatedAt"
+                    LIMIT @batchSize
+                    FOR UPDATE SKIP LOCKED
                 )
-                OR
-                (
-                Status = @inProgressStatus
-                AND ProcessingStartedAt <= @processingTimeout
-                )
-                ORDER BY CreatedAt
-                LIMIT @batchSize
-                FOR UPDATE SKIP LOCKED
-                )
-                UPDATE Orders o
+                UPDATE public."Orders" o
                 SET
-                Status = @inProgressStatus,
-                ProcessingStartedAt = NOW(),
-                ModifiedAt = NOW()
-                FROM claimedOrders c
-                WHERE o.Id = c.Id
-                RETURNING o.Id;
+                    "Status" = @inProgressStatus,
+                    "ProcessingStartedAt" = NOW(),
+                    "ModifiedAt" = NOW()
+                FROM claimed_orders c
+                WHERE o."Id" = c."Id"
+                RETURNING o."Id";
                 """;
 
-        await using var connection = (NpgsqlConnection)_dbContext.Database.GetDbConnection();
+        var connection = (NpgsqlConnection)_dbContext.Database.GetDbConnection();
 
         if (connection.State != System.Data.ConnectionState.Open)
             await connection.OpenAsync(cancellationToken);

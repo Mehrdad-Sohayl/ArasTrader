@@ -5,5 +5,5 @@ namespace ArasTrader.Application.Interfaces.OrderProcessing;
 
 public interface IOrderProcessingService
 {
-    Task<Result<OrderProcessingResult>> ProcessPendingOrdersAsync(int batchSize, CancellationToken cancellationToken);
+    Task<Result<OrderProcessingResult>> ProcessPendingOrdersAsync(CancellationToken cancellationToken);
 }

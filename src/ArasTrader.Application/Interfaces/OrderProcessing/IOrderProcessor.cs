@@ -4,5 +4,5 @@ namespace ArasTrader.Application.Interfaces.OrderProcessing;
 
 public interface IOrderProcessor
 {
-    Task ProcessAsync(Order order, CancellationToken cancellationToken);
+    Task ProcessAsync(Order order,Wallet wallet, CancellationToken cancellationToken);
 }

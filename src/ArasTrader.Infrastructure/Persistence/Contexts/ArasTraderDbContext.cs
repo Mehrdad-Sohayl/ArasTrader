@@ -5,7 +5,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 namespace ArasTrader.Infrastructure.Persistence.Contexts;
 
-internal class ArasTraderDbContext : DbContext
+public class ArasTraderDbContext : DbContext
 {
     public ArasTraderDbContext(DbContextOptions options) : base(options)
     {
