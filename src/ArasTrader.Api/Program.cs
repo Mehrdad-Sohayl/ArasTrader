@@ -1,6 +1,7 @@
 using ArasTrader.Api.Middlewares;
 using ArasTrader.Application;
 using ArasTrader.Infrastructure;
+using Hangfire;
 
 
 var builder = WebApplication.CreateBuilder(args);
@@ -26,5 +27,6 @@ app.UseMiddleware<ExceptionHandlingMiddleware>();
 app.UseHttpsRedirection();
 app.MapControllers();
 
+app.UseHangfireDashboard("/hangfire");
 
 app.Run();

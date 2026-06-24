@@ -51,6 +51,9 @@ public sealed class OrderConfiguration : IEntityTypeConfiguration<Order>
             .HasDefaultValueSql("CURRENT_TIMESTAMP")
             .ValueGeneratedOnAddOrUpdate();
 
+        builder.Property(o => o.ProcessingStartedAt)
+            .HasColumnType("timestamp with time zone");
+
         builder.Ignore(o => o.Amount);
 
         builder.Property(o => o.Version)
