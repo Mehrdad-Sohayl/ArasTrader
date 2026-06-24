@@ -12,8 +12,51 @@ services:
     ports:
       - "5432:5432"
 
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d ArasTraderDb"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+    restart: unless-stopped
+
     volumes:
       - postgres_data:/var/lib/postgresql/data
+
+  api:
+    image: arastrader-api:latest
+    container_name: arastrader-api
+
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+    environment:
+      ASPNETCORE_ENVIRONMENT: Production
+
+      ConnectionStrings__DefaultConnection: Host=postgres;Port=5432;Database=ArasTraderDb;Username=postgres;Password=postgres
+
+      ArasApi__Username: ${ARAS_API_USERNAME}
+      ArasApi__Password: ${ARAS_API_PASSWORD}
+
+    ports:
+      - "8080:8080"
+
+  worker:
+    image: arastrader-worker:latest
+    container_name: arastrader-worker
+
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+    environment:
+      DOTNET_ENVIRONMENT: Production
+
+      ConnectionStrings__DefaultConnection: Host=postgres;Port=5432;Database=ArasTraderDb;Username=postgres;Password=postgres
+
+      ArasApi__Username: ${ARAS_API_USERNAME}
+      ArasApi__Password: ${ARAS_API_PASSWORD}
 
 volumes:
   postgres_data:
