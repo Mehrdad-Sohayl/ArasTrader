@@ -48,3 +48,5 @@ TestResults/
 local.settings.json
 ./Properties/launchSettings.json
 .ai-review/*.md
+
+.env
