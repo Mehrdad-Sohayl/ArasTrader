@@ -47,3 +47,4 @@ TestResults/
 # Local settings
 local.settings.json
 ./Properties/launchSettings.json
+.ai-review/*.md
