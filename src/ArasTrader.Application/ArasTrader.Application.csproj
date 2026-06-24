@@ -7,12 +7,16 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\ArasTrader.Domain\ArasTrader.Domain.csproj" />
+    <Compile Remove="Gateways\**" />
+    <Compile Remove="Validators\**" />
+    <EmbeddedResource Remove="Gateways\**" />
+    <EmbeddedResource Remove="Validators\**" />
+    <None Remove="Gateways\**" />
+    <None Remove="Validators\**" />
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Gateways\" />
-    <Folder Include="Validators\" />
+    <ProjectReference Include="..\ArasTrader.Domain\ArasTrader.Domain.csproj" />
   </ItemGroup>
 
   <ItemGroup>

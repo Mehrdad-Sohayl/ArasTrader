@@ -13,6 +13,7 @@ public class Order
     public decimal Price { get; private set; }
     public OrderType Type { get; private set; }
     public OrderStatus Status { get; private set; }
+    public DateTimeOffset? ProcessingStartedAt { get; private set; }
     public DateTime CreatedAt { get; private set; }
     public DateTime ModifiedAt { get; private set; }
     public uint Version { get; set; }
@@ -114,5 +115,10 @@ public class Order
 
         Status = OrderStatus.Rejected;
         ModifiedAt = DateTime.UtcNow;
+    }
+
+    public void ClearProcessingTimeout()
+    {
+        ProcessingStartedAt = null;
     }
 }

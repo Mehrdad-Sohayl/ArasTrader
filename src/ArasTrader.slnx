@@ -3,4 +3,5 @@
   <Project Path="ArasTrader.Application/ArasTrader.Application.csproj" />
   <Project Path="ArasTrader.Domain/ArasTrader.Domain.csproj" />
   <Project Path="ArasTrader.Infrastructure/ArasTrader.Infrastructure.csproj" />
+  <Project Path="ArasTrader.Worker/ArasTrader.Worker.csproj" />
 </Solution>

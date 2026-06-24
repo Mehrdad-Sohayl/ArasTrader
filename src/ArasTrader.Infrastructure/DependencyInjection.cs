@@ -1,12 +1,17 @@
 ﻿using ArasTrader.Application.Interfaces;
+using ArasTrader.Application.Interfaces.OrderProcessing;
 using ArasTrader.Application.Interfaces.Repositories;
 using ArasTrader.Infrastructure.Auth;
 using ArasTrader.Infrastructure.Caching.TokenManagement;
 using ArasTrader.Infrastructure.ExternalApis.ArasApi;
+using ArasTrader.Infrastructure.Jobs;
 using ArasTrader.Infrastructure.Options;
+using ArasTrader.Infrastructure.OrderProcessing;
 using ArasTrader.Infrastructure.Persistence;
 using ArasTrader.Infrastructure.Persistence.Contexts;
 using ArasTrader.Infrastructure.Repositories;
+using Hangfire;
+using Hangfire.PostgreSql;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -34,6 +39,8 @@ public static class DependencyInjection
         services.AddScoped<IWalletRepository, WalletRepository>();
         services.AddScoped<IUnitOfWork, UnitOfWork>();
 
+        services.AddScoped<IOrderClaimService, PostgresOrderClaimService>();
+
         services.AddMemoryCache();
 
         services.AddScoped<ITokenStore, MemoryTokenStore>();
@@ -45,6 +52,23 @@ public static class DependencyInjection
 
         services.Configure<ArasApiOptions>(configuration.GetRequiredSection(ArasApiOptions.SectionName));
 
+        services.Configure<OrderProcessingOptions>(configuration.GetSection(OrderProcessingOptions.SectionName));
+
+        services.AddScoped<OrderProcessingJob>();
+
+        services.Configure<HangfireOptions>(configuration.GetSection(HangfireOptions.SectionName));
+
+        var hangfireOptions =
+            configuration
+            .GetSection(HangfireOptions.SectionName)
+            .Get<HangfireOptions>() ?? new HangfireOptions();
+
+        services.AddHangfire(config =>
+        {
+            config.UsePostgreSqlStorage(storage =>
+                storage.UseNpgsqlConnection(
+                    configuration.GetConnectionString("DefaultConnection")));
+        });
 
         return services;
     }
