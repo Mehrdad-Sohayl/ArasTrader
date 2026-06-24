@@ -2,5 +2,5 @@
 
 public interface IOrderClaimService
 {
-    Task<IReadOnlyList<int>> ClaimPendingOrdersAsync(int batchSize, CancellationToken cancellationToken);
+    Task<IReadOnlyList<int>> ClaimPendingOrdersAsync(CancellationToken cancellationToken);
 }
