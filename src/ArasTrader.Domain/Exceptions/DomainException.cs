@@ -4,10 +4,11 @@ namespace ArasTrader.Domain.Exceptions;
 
 public class DomainException : Exception
 {
-    private readonly DomainError _error;
+    public DomainError Error { get; }
 
     public DomainException(DomainError error)
+        : base(error.Message)
     {
-        _error = error;
+        Error = error;
     }
 }
