@@ -32,11 +32,11 @@ public class OrderService : IOrderService
 
     public async Task<Result<int>> CreateOrderAsync(CreateOrderRequest request, CancellationToken cancellationToken = default)
     {
-        var customer = await _customerRepository.GetByIdAsync(request.CustomerId);
+        var customer = await _customerRepository.GetByIdAsync(request.CustomerId, cancellationToken);
         if (customer == null)
             return Result<int>.Failure(new ApplicationError(ApplicationErrorCodes.CustomerNotFound, ApplicationErrorCodes.CustomerNotFound));
 
-        var wallet = await _walletRepository.GetByCustomerIdAsync(request.CustomerId);
+        var wallet = await _walletRepository.GetByCustomerIdAsync(request.CustomerId, cancellationToken);
         if (wallet == null)
             return Result<int>.Failure(new ApplicationError(ApplicationErrorCodes.WalletNotFound, ApplicationErrorCodes.WalletNotFound));
 
@@ -52,7 +52,7 @@ public class OrderService : IOrderService
 
         try
         {
-            await _orderRepository.AddAsync(order);
+            await _orderRepository.AddAsync(order, cancellationToken);
             await _unitOfWork.SaveChangesAsync();
         }
         catch (Exception ex)
@@ -83,11 +83,11 @@ public class OrderService : IOrderService
 
     private async Task<int> InnerEditOrderAsync(EditOrderRequest request, CancellationToken cancellationToken)
     {
-        var order = await _orderRepository.GetByIdAsync(request.OrderId);
+        var order = await _orderRepository.GetByIdAsync(request.OrderId, cancellationToken);
         if (order == null)
             throw new ApplicationException(new ApplicationError(ApplicationErrorCodes.OrderNotFound, ApplicationErrorCodes.OrderNotFound));
 
-        var wallet = await _walletRepository.GetByCustomerIdAsync(order.CustomerId);
+        var wallet = await _walletRepository.GetByCustomerIdAsync(order.CustomerId, cancellationToken);
         if (wallet == null)
             throw new ApplicationException(new ApplicationError(ApplicationErrorCodes.WalletNotFound, ApplicationErrorCodes.WalletNotFound));
 

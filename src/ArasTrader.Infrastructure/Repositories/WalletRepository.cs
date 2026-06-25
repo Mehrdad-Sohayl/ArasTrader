@@ -14,7 +14,7 @@ internal class WalletRepository : IWalletRepository
         _dbContext = dbContext;
     }
 
-    public async Task AddAsync(Wallet wallet)
+    public async Task AddAsync(Wallet wallet, CancellationToken cancellationToken)
     {
         await _dbContext.Wallets.AddAsync(wallet);
     }
@@ -24,7 +24,7 @@ internal class WalletRepository : IWalletRepository
         _dbContext.Wallets.Update(wallet);
     }
 
-    public async Task<Wallet?> GetByCustomerIdAsync(int customerId)
+    public async Task<Wallet?> GetByCustomerIdAsync(int customerId, CancellationToken cancellationToken)
     {
         return await _dbContext.Wallets.SingleOrDefaultAsync(w => w.CustomerId == customerId);
     }

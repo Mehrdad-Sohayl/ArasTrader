@@ -30,7 +30,7 @@ public class CustomerSyncService : ICustomerSyncService
 
     public async Task<Result<List<CustomerDto>>> SyncAsync(CancellationToken cancellationToken = default)
     {
-        var token = await _tokenManager.GetValidTokenAsync();
+        var token = await _tokenManager.GetValidTokenAsync(cancellationToken);
         if (!token.IsSuccess)
             return Result<List<CustomerDto>>.Failure(token.Errors.First());
 
@@ -40,7 +40,7 @@ public class CustomerSyncService : ICustomerSyncService
 
         foreach (var c in customers.Value)
         {
-            var exists = await _customerRepository.ExistsByNationalCodeAsync(c.NationalCode);
+            var exists = await _customerRepository.ExistsByNationalCodeAsync(c.NationalCode, cancellationToken);
 
             if (exists)
                 continue;
@@ -56,14 +56,14 @@ public class CustomerSyncService : ICustomerSyncService
                 branchName: c.BranchName,
                 mobileNumber: c.MobileNumber);
 
-            await _customerRepository.AddAsync(customer);
+            await _customerRepository.AddAsync(customer, cancellationToken);
 
 
             var wallet = Wallet.Create(
                 customer: customer,
                 availableBalance: 0);
 
-            await _walletRepository.AddAsync(wallet);
+            await _walletRepository.AddAsync(wallet, cancellationToken);
 
             await _unitOfWork.SaveChangesAsync();
 

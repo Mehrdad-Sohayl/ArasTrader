@@ -24,11 +24,11 @@ internal class WalletService : IWalletService
 
     public async Task<Result<decimal>> Deposit(DepositWalletRequest request, CancellationToken cancellationToken = default)
     {
-        var customer = await _customerRepository.GetByIdAsync(request.CustomerId);
+        var customer = await _customerRepository.GetByIdAsync(request.CustomerId, cancellationToken);
         if (customer == null)
             return Result<decimal>.Failure(new ApplicationError(ApplicationErrorCodes.CustomerNotFound, ApplicationErrorCodes.CustomerNotFound));
 
-        var wallet = await _walletRepository.GetByCustomerIdAsync(request.CustomerId);
+        var wallet = await _walletRepository.GetByCustomerIdAsync(request.CustomerId, cancellationToken);
         if (wallet == null)
             return Result<decimal>.Failure(new ApplicationError(ApplicationErrorCodes.WalletNotFound, ApplicationErrorCodes.WalletNotFound));
 

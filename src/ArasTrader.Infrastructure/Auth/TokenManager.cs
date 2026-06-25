@@ -32,7 +32,7 @@ internal class TokenManager : ITokenManager
         _arasApiOptions = arasApiOptions.Value;
     }
 
-    public async Task<Result<string>> GetValidTokenAsync()
+    public async Task<Result<string>> GetValidTokenAsync(CancellationToken cancellationToken = default)
     {
         var cached = _tokenStore.Get();
 
@@ -45,7 +45,7 @@ internal class TokenManager : ITokenManager
         {
             cached = _tokenStore.Get();
             if (cached == null)
-                cached = await _authTokenRepository.GetAsync();
+                cached = await _authTokenRepository.GetAsync(cancellationToken);
             if (cached != null && !IsExpired(cached))
                 return Result<string>.Success(cached.AccessToken);
 
@@ -54,7 +54,7 @@ internal class TokenManager : ITokenManager
                 return Result<string>.Failure(newToken!.Errors!.First());
 
             _tokenStore.Save(newToken.Value);
-            await _authTokenRepository.AddAsync(newToken.Value);
+            await _authTokenRepository.AddAsync(newToken.Value, cancellationToken);
             await _unitOfWork.SaveChangesAsync();
             return Result<string>.Success(newToken.Value.AccessToken);
         }

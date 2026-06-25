@@ -14,12 +14,12 @@ internal class AuthTokenRepository : IAuthTokenRepository
         _dbContext = dbContext;
     }
 
-    public async Task AddAsync(TokenState tokenState)
+    public async Task AddAsync(TokenState tokenState, CancellationToken cancellationToken)
     {
         await _dbContext.TokenStates.AddAsync(tokenState);
     }
 
-    public async Task<TokenState?> GetAsync()
+    public async Task<TokenState?> GetAsync(CancellationToken cancellationToken)
     {
         return await _dbContext.TokenStates
             .SingleOrDefaultAsync(t => t.ExpiresAtUtc >= DateTime.UtcNow);
