@@ -1,12 +1,12 @@
-﻿namespace ArasTrader.Application.Models.Orders;
+﻿namespace ArasTrader.Application.DTOs;
 
-public class EditOrderRequest
+public class EditOrderRequestDto
 {
     public int OrderId { get; private set; }
     public int Quantity { get; private set; }
     public decimal Price { get; private set; }
 
-    public EditOrderRequest(
+    public EditOrderRequestDto(
         int orderId,
         int quantity,
         decimal price)

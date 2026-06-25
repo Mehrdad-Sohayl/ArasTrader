@@ -3,7 +3,7 @@ using ArasTrader.Application.Models;
 using ArasTrader.Infrastructure.Persistence.Contexts;
 using Microsoft.EntityFrameworkCore;
 
-namespace ArasTrader.Infrastructure.Repositories;
+namespace ArasTrader.Infrastructure.Persistence.Repositories;
 
 internal class AuthTokenRepository : IAuthTokenRepository
 {

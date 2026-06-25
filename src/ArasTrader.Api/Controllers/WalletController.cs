@@ -1,4 +1,6 @@
-﻿using ArasTrader.Application.Interfaces;
+﻿using ArasTrader.Api.Contracts.Wallets;
+using ArasTrader.Application.DTOs;
+using ArasTrader.Application.Interfaces;
 
 using Microsoft.AspNetCore.Mvc;
 
@@ -16,9 +18,9 @@ public class WalletController : ControllerBase
     }
 
     [HttpPut]
-    public async Task<IActionResult> Deposit(Contracts.Wallets.DepositWalletRequest request, CancellationToken cancellationToken)
+    public async Task<IActionResult> Deposit(DepositWalletRequest request, CancellationToken cancellationToken)
     {
-        var depositWalletRequest = new Application.Models.Wallets.DepositWalletRequest(
+        var depositWalletRequest = new DepositWalletRequestDto(
             customerId: request.CustomerId,
             amount: request.Amount);
 

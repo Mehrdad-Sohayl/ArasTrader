@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using Npgsql;
 
-namespace ArasTrader.Infrastructure.OrderProcessing;
+namespace ArasTrader.Infrastructure.Persistence.Repositories.OrderProcessing;
 
 internal class PostgresOrderClaimService : IOrderClaimService
 {
