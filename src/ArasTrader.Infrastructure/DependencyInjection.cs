@@ -1,9 +1,11 @@
 ﻿using ArasTrader.Application.Interfaces;
+using ArasTrader.Application.Interfaces.Gateways;
 using ArasTrader.Application.Interfaces.OrderProcessing;
 using ArasTrader.Application.Interfaces.Repositories;
 using ArasTrader.Infrastructure.Auth;
 using ArasTrader.Infrastructure.Caching.TokenManagement;
 using ArasTrader.Infrastructure.ExternalApis.ArasApi;
+using ArasTrader.Infrastructure.Gateways;
 using ArasTrader.Infrastructure.Jobs;
 using ArasTrader.Infrastructure.Options;
 using ArasTrader.Infrastructure.OrderProcessing;
@@ -32,30 +34,31 @@ public static class DependencyInjection
                 configuration.GetConnectionString("DefaultConnection"));
         });
 
-
+        #region DataStorage
         services.AddScoped<IAuthTokenRepository, AuthTokenRepository>();
         services.AddScoped<ICustomerRepository, CustomerRepository>();
         services.AddScoped<IOrderRepository, OrderRepository>();
         services.AddScoped<IWalletRepository, WalletRepository>();
         services.AddScoped<IUnitOfWork, UnitOfWork>();
-
         services.AddScoped<IOrderClaimService, PostgresOrderClaimService>();
+        #endregion
 
+        #region Memory
         services.AddMemoryCache();
-
         services.AddScoped<ITokenStore, MemoryTokenStore>();
+        #endregion
+
         services.AddScoped<ITokenManager, TokenManager>();
 
+        #region ExternalApis
         services.AddRefitClients(configuration);
-
-        services.AddScoped<ICustomerGateway, ArasCustomerGateway>();
-
         services.Configure<ArasApiOptions>(configuration.GetRequiredSection(ArasApiOptions.SectionName));
+        services.AddScoped<ICustomerGateway, ArasCustomerGateway>();
+        #endregion
 
+        #region OrderProcessingJob
         services.Configure<OrderProcessingOptions>(configuration.GetSection(OrderProcessingOptions.SectionName));
-
         services.AddScoped<OrderProcessingJob>();
-
         services.Configure<HangfireOptions>(configuration.GetSection(HangfireOptions.SectionName));
 
         var hangfireOptions =
@@ -69,6 +72,11 @@ public static class DependencyInjection
                 storage.UseNpgsqlConnection(
                     configuration.GetConnectionString("DefaultConnection")));
         });
+        #endregion
+
+        #region Gateways
+        services.AddScoped<IOrderGateway, OrderGateway>();
+        #endregion
 
         return services;
     }
