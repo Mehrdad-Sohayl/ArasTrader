@@ -42,7 +42,6 @@ The following capabilities are not implemented in the current solution:
 - CQRS
 - Event sourcing
 - Distributed caching
-- Gateway component
 
 ## Architecture
 
@@ -373,7 +372,30 @@ No database seeding is performed during startup.
 All business data is created through application workflows, such as customer synchronization and order creation.
 
 ---
+## Order Gateway
 
+An Order Gateway layer has been implemented in front of order-related application services.
+
+Current flow:
+
+Controller → Order Gateway → Order Service
+
+The gateway acts as a single entry point for order operations and provides an extensibility point for future order entry channels.
+
+Currently supported channel:
+
+* REST API
+
+Future channels can be added with minimal impact on the business layer:
+
+* FIX adapters
+* Message queue consumers
+* Partner integrations
+* gRPC services
+
+Business rules remain inside the application services while channel-specific concerns are isolated within the gateway layer.
+
+---
 ## Order Processing Flow
 
 Order processing is executed asynchronously using Hangfire.
@@ -1061,13 +1083,6 @@ The current solution uses a simpler CRUD-oriented approach that was considered s
 Redis or other distributed caching solutions are not implemented.
 
 The current implementation uses in-memory caching for token management.
-
-### Gateway Component
-
-The assignment mentioned implementing a gateway in front of order processing.
-
-A dedicated gateway component was not implemented in this solution.
-
-The current implementation communicates directly through the application and infrastructure layers.                              
+                         
 
 ---
