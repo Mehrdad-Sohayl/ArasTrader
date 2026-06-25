@@ -14,22 +14,22 @@ internal class CustomerRepository : ICustomerRepository
         _dbContext = dbContext;
     }
 
-    public async Task AddAsync(Customer customer)
+    public async Task AddAsync(Customer customer, CancellationToken cancellationToken)
     {
         await _dbContext.Customers.AddAsync(customer);
     }
 
-    public async Task<bool> ExistsByIdAsync(int customerId)
+    public async Task<bool> ExistsByIdAsync(int customerId, CancellationToken cancellationToken)
     {
         return await _dbContext.Customers.AnyAsync(c => c.Id == customerId);
     }
 
-    public async Task<bool> ExistsByNationalCodeAsync(string nationalCode)
+    public async Task<bool> ExistsByNationalCodeAsync(string nationalCode, CancellationToken cancellationToken)
     {
         return await _dbContext.Customers.AnyAsync(c => c.NationalCode == nationalCode);
     }
 
-    public async Task<Customer?> GetByIdAsync(int customerId)
+    public async Task<Customer?> GetByIdAsync(int customerId, CancellationToken cancellationToken)
     {
         return await _dbContext.Customers.SingleOrDefaultAsync(c => c.Id == customerId);
     }

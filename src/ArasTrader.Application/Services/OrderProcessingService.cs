@@ -45,12 +45,12 @@ internal class OrderProcessingService : IOrderProcessingService
         {
             try
             {
-                var order = await _orderRepository.GetByIdAsync(orderId);
+                var order = await _orderRepository.GetByIdAsync(orderId, cancellationToken);
 
                 if (order is null)
                     continue;
 
-                var wallet = await _walletRepository.GetByCustomerIdAsync(order.CustomerId);
+                var wallet = await _walletRepository.GetByCustomerIdAsync(order.CustomerId, cancellationToken);
                 if (wallet is null)
                     continue;
 

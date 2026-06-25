@@ -14,12 +14,12 @@ internal class OrderRepository : IOrderRepository
         _dbContext = dbContext;
     }
 
-    public async Task AddAsync(Order order)
+    public async Task AddAsync(Order order, CancellationToken cancellationToken)
     {
         await _dbContext.Orders.AddAsync(order);
     }
 
-    public async Task<Order?> GetByIdAsync(int id)
+    public async Task<Order?> GetByIdAsync(int id, CancellationToken cancellationToken)
     {
         return await _dbContext.Orders.SingleOrDefaultAsync(o => o.Id == id);
     }
