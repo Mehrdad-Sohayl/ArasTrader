@@ -1,6 +1,6 @@
 ﻿using ArasTrader.Api.Contracts.Orders;
-using ArasTrader.Application.Interfaces;
-using ArasTrader.Application.Models.Orders;
+using ArasTrader.Application.Enums;
+using ArasTrader.Application.Interfaces.Gateways;
 using Microsoft.AspNetCore.Mvc;
 
 namespace ArasTrader.Api.Controllers;
@@ -9,15 +9,15 @@ namespace ArasTrader.Api.Controllers;
 [Route("/api/orders")]
 public class OrdersController : ControllerBase
 {
-    private readonly IOrderService _orderService;
+    private readonly IOrderGateway _orderGateway;
 
-    public OrdersController(IOrderService orderService)
+    public OrdersController(IOrderGateway orderGateway)
     {
-        _orderService = orderService;
+        _orderGateway = orderGateway;
     }
 
     [HttpPost]
-    public async Task<ActionResult<CreateOrderResponse>> Create(Contracts.Orders.CreateOrderRequest request, CancellationToken cancellationToken)
+    public async Task<ActionResult<CreateOrderResponse>> Create(CreateOrderRequest request, CancellationToken cancellationToken)
     {
         var createOrderRequest = new Application.Models.Orders.CreateOrderRequest(
             customerId: request.CustomerId,
@@ -26,7 +26,7 @@ public class OrdersController : ControllerBase
             price: request.Price,
             type: request.Type);
 
-        var result = await _orderService.CreateOrderAsync(createOrderRequest, cancellationToken);
+        var result = await _orderGateway.CreateAsync(createOrderRequest, OrderChannel.API, cancellationToken);
 
         if (result.IsSuccess)
             return Ok(result);
@@ -38,14 +38,14 @@ public class OrdersController : ControllerBase
     }
 
     [HttpPut("{id}")]
-    public async Task<IActionResult> Edit(int id, Contracts.Orders.EditOrderRequest request, CancellationToken cancellationToken)
+    public async Task<IActionResult> Edit(int id, EditOrderRequest request, CancellationToken cancellationToken)
     {
         var createOrderRequest = new Application.Models.Orders.EditOrderRequest(
             orderId: id,
             quantity: request.Quantity,
             price: request.Price);
 
-        var result = await _orderService.EditOrderAsync(createOrderRequest, cancellationToken);
+        var result = await _orderGateway.EditAsync(createOrderRequest, OrderChannel.API, cancellationToken);
 
         if (result.IsSuccess)
             return Ok(result);
