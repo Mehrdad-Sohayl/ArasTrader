@@ -4,11 +4,12 @@ namespace ArasTrader.Application.Exceptions;
 
 public class ApplicationException : Exception
 {
-    private readonly ApplicationError _error;
+    public ApplicationError Error { get; }
 
     public ApplicationException(ApplicationError error)
+        : base(error.Message)
     {
-        _error = error;
+        Error = error;
     }
 }
 
