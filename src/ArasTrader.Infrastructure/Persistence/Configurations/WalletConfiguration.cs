@@ -2,7 +2,7 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
-namespace ArasTrader.Infrastructure.Configurations;
+namespace ArasTrader.Infrastructure.Persistence.Configurations;
 
 public sealed class WalletConfiguration : IEntityTypeConfiguration<Wallet>
 {

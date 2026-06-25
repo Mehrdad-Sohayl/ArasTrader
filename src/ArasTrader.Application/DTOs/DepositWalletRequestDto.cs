@@ -1,11 +1,11 @@
-﻿namespace ArasTrader.Application.Models.Wallets;
+﻿namespace ArasTrader.Application.DTOs;
 
-public class DepositWalletRequest
+public class DepositWalletRequestDto
 {
     public int CustomerId { get; private set; }
     public decimal Amount { get; private set; }
 
-    public DepositWalletRequest(int customerId, decimal amount)
+    public DepositWalletRequestDto(int customerId, decimal amount)
     {
         CustomerId = customerId;
         Amount = amount;

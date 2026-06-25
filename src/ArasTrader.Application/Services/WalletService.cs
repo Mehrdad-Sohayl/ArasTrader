@@ -1,7 +1,7 @@
 ﻿using ArasTrader.Application.Common;
+using ArasTrader.Application.DTOs;
 using ArasTrader.Application.Interfaces;
 using ArasTrader.Application.Interfaces.Repositories;
-using ArasTrader.Application.Models.Wallets;
 using ApplicationException = ArasTrader.Application.Exceptions.ApplicationException;
 
 namespace ArasTrader.Application.Services;
@@ -22,7 +22,7 @@ internal class WalletService : IWalletService
         _unitOfWork = unitOfWork;
     }
 
-    public async Task<Result<decimal>> Deposit(DepositWalletRequest request, CancellationToken cancellationToken = default)
+    public async Task<Result<decimal>> Deposit(DepositWalletRequestDto request, CancellationToken cancellationToken = default)
     {
         var customer = await _customerRepository.GetByIdAsync(request.CustomerId, cancellationToken);
         if (customer == null)

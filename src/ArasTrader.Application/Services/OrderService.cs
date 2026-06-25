@@ -1,8 +1,8 @@
 ﻿using ArasTrader.Application.Common;
+using ArasTrader.Application.DTOs;
 using ArasTrader.Application.Exceptions;
 using ArasTrader.Application.Interfaces;
 using ArasTrader.Application.Interfaces.Repositories;
-using ArasTrader.Application.Models.Orders;
 using ArasTrader.Domain.Entities;
 using ArasTrader.Domain.Enums;
 using ApplicationException = ArasTrader.Application.Exceptions.ApplicationException;
@@ -30,7 +30,7 @@ public class OrderService : IOrderService
         _unitOfWork = unitOfWork;
     }
 
-    public async Task<Result<int>> CreateOrderAsync(CreateOrderRequest request, CancellationToken cancellationToken = default)
+    public async Task<Result<int>> CreateOrderAsync(CreateOrderRequestDto request, CancellationToken cancellationToken = default)
     {
         var customer = await _customerRepository.GetByIdAsync(request.CustomerId, cancellationToken);
         if (customer == null)
@@ -63,7 +63,7 @@ public class OrderService : IOrderService
         return Result<int>.Success(order.Id);
     }
 
-    public async Task<Result<int>> EditOrderAsync(EditOrderRequest request, CancellationToken cancellationToken)
+    public async Task<Result<int>> EditOrderAsync(EditOrderRequestDto request, CancellationToken cancellationToken)
     {
         for (var attempt = 0; attempt < MaxRetries; attempt++)
         {
@@ -81,7 +81,7 @@ public class OrderService : IOrderService
         return Result<int>.Failure(new ApplicationError(ApplicationErrorCodes.CannotEditOrder, ApplicationErrorCodes.CannotEditOrder));
     }
 
-    private async Task<int> InnerEditOrderAsync(EditOrderRequest request, CancellationToken cancellationToken)
+    private async Task<int> InnerEditOrderAsync(EditOrderRequestDto request, CancellationToken cancellationToken)
     {
         var order = await _orderRepository.GetByIdAsync(request.OrderId, cancellationToken);
         if (order == null)

@@ -1,8 +1,8 @@
 ﻿using ArasTrader.Domain.Enums;
 
-namespace ArasTrader.Application.Models.Orders;
+namespace ArasTrader.Application.DTOs;
 
-public class CreateOrderRequest
+public class CreateOrderRequestDto
 {
     public int CustomerId { get; private set; }
     public string Symbol { get; private set; }
@@ -10,7 +10,7 @@ public class CreateOrderRequest
     public decimal Price { get; private set; }
     public OrderType Type { get; private set; }
 
-    public CreateOrderRequest(
+    public CreateOrderRequestDto(
         int customerId,
         string symbol,
         int quantity,

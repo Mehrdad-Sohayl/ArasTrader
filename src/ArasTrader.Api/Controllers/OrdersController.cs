@@ -1,4 +1,5 @@
 ﻿using ArasTrader.Api.Contracts.Orders;
+using ArasTrader.Application.DTOs;
 using ArasTrader.Application.Enums;
 using ArasTrader.Application.Interfaces.Gateways;
 using Microsoft.AspNetCore.Mvc;
@@ -19,7 +20,7 @@ public class OrdersController : ControllerBase
     [HttpPost]
     public async Task<ActionResult<CreateOrderResponse>> Create(CreateOrderRequest request, CancellationToken cancellationToken)
     {
-        var createOrderRequest = new Application.Models.Orders.CreateOrderRequest(
+        var createOrderRequest = new CreateOrderRequestDto(
             customerId: request.CustomerId,
             symbol: request.Symbol,
             quantity: request.Quantity,
@@ -40,7 +41,7 @@ public class OrdersController : ControllerBase
     [HttpPut("{id}")]
     public async Task<IActionResult> Edit(int id, EditOrderRequest request, CancellationToken cancellationToken)
     {
-        var createOrderRequest = new Application.Models.Orders.EditOrderRequest(
+        var createOrderRequest = new EditOrderRequestDto(
             orderId: id,
             quantity: request.Quantity,
             price: request.Price);

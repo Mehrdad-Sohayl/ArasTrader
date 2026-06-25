@@ -3,7 +3,7 @@ using ArasTrader.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
-namespace ArasTrader.Infrastructure.Configurations;
+namespace ArasTrader.Infrastructure.Persistence.Configurations;
 
 public class TokenStateConfiguration : IEntityTypeConfiguration<TokenState>
 {
