@@ -1,5 +1,7 @@
 FROM mcr.microsoft.com/dotnet/sdk:10.0-preview AS build
 
+ENV DOTNET_SYSTEM_NET_SECURITY_SSLREVOCATIONCHECKMODE=NoCheck
+
 WORKDIR /src
 
 COPY . .
