@@ -1,10 +1,10 @@
-﻿namespace ArasTrader.Application.Common
+namespace ArasTrader.Application.Common
 {
     public class Result<T>
     {
         public T Value { get; private set; }
         public bool IsSuccess { get; private set; }
-        public IReadOnlyCollection<ApplicationError> Errors { get; set; } = new List<ApplicationError>();
+        public IReadOnlyCollection<ApplicationError> Errors { get; private set; } = new List<ApplicationError>();
 
         protected Result(T value, bool isSuccess, IReadOnlyCollection<ApplicationError> errors)
         {
