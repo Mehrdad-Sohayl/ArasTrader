@@ -1,4 +1,4 @@
-﻿namespace ArasTrader.Domain.Common
+namespace ArasTrader.Domain.Common
 {
     public static class DomainErrorCodes
     {
@@ -8,7 +8,7 @@
         public const string InvalidSymbol = "Invalid symbol.";
         public const string InvalidQuantity = "Invalid quantity.";
         public const string InvalidPrice = "Invalid price.";
-        public const string CannotCreateCustomer = "Can not create customer.";
+        public const string CannotCreateCustomer = "Cannot create customer.";
         public const string InvalidOrderState = "Invalid order state.";
     }
 }

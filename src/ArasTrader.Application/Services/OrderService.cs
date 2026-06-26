@@ -1,4 +1,4 @@
-﻿using ArasTrader.Application.Common;
+using ArasTrader.Application.Common;
 using ArasTrader.Application.DTOs;
 using ArasTrader.Application.Exceptions;
 using ArasTrader.Application.Interfaces;
@@ -75,6 +75,12 @@ public class OrderService : IOrderService
             catch (ConcurrencyException)
             {
                 _unitOfWork.ClearTracking();
+
+                if (attempt < MaxRetries - 1)
+                {
+                    var delayMs = Math.Pow(2, attempt) * 10;
+                    await Task.Delay((int)Math.Min(delayMs, 500), cancellationToken);
+                }
             }
         }
 
