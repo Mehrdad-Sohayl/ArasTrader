@@ -34,7 +34,7 @@ internal class TokenManager : ITokenManager
 
     public async Task<Result<string>> GetValidTokenAsync(CancellationToken cancellationToken = default)
     {
-        var cached = _tokenStore.Get();
+        var cached = await LoadTokenAsync(cancellationToken);
 
         if (cached != null && !IsExpired(cached))
             return Result<string>.Success(cached.AccessToken);
@@ -43,20 +43,14 @@ internal class TokenManager : ITokenManager
 
         try
         {
-            cached = _tokenStore.Get();
-            if (cached == null)
-                cached = await _authTokenRepository.GetAsync(cancellationToken);
+            cached = await LoadTokenAsync(cancellationToken);
             if (cached != null && !IsExpired(cached))
                 return Result<string>.Success(cached.AccessToken);
 
-            var newToken = await LoginAsync();
-            if (newToken == null || !newToken.IsSuccess)
-                return Result<string>.Failure(newToken!.Errors!.First());
+            if (cached != null)
+                return await RefreshTokenAsync(cached, cancellationToken);
 
-            _tokenStore.Save(newToken.Value);
-            await _authTokenRepository.AddAsync(newToken.Value, cancellationToken);
-            await _unitOfWork.SaveChangesAsync();
-            return Result<string>.Success(newToken.Value.AccessToken);
+            return await LoginAndPersistAsync(cancellationToken);
         }
         finally
         {
@@ -66,10 +60,12 @@ internal class TokenManager : ITokenManager
 
     private bool IsExpired(TokenState token)
     {
-        return token.ExpiresAtUtc < DateTime.UtcNow.AddSeconds(30);
+        return token.ExpiresAtUtc < DateTime.UtcNow.AddMinutes(5);
     }
 
-    private async Task<Result<TokenState>> LoginAsync()
+
+    private async Task<Result<TokenState>> ExecuteTokenOperationAsync(
+    Func<Task<TokenState>> operation)
     {
         const int maxRetries = 3;
 
@@ -77,20 +73,8 @@ internal class TokenManager : ITokenManager
         {
             try
             {
-                var response = await _arasApiClient.GetTokenAsync(new LoginRequest
-                {
-                    Username = _arasApiOptions.Username,
-                    Password = _arasApiOptions.Password
-                });
-
-                var result = new TokenState
-                {
-                    AccessToken = response.AccessToken,
-                    ExpiresAtUtc = response.ExpiresAtUtc
-                };
-
-                return Result<TokenState>.Success(result);
-
+                var token = await operation();
+                return Result<TokenState>.Success(token);
             }
             catch (Exception ex) when (IsTransient(ex) && attempt < maxRetries)
             {
@@ -98,12 +82,112 @@ internal class TokenManager : ITokenManager
             }
             catch (Exception ex)
             {
-                return Result<TokenState>.Failure(new ApplicationError(ApplicationErrorCodes.CannotRetriveToken, ex.Message));
+                return Result<TokenState>.Failure(
+                    new ApplicationError(
+                        ApplicationErrorCodes.CannotRetriveToken,
+                        ex.Message));
             }
-
         }
 
-        return Result<TokenState>.Failure(new ApplicationError(ApplicationErrorCodes.CannotRetriveToken, ApplicationErrorCodes.CannotRetriveToken));
+        return Result<TokenState>.Failure(
+            new ApplicationError(
+                ApplicationErrorCodes.CannotRetriveToken,
+                ApplicationErrorCodes.CannotRetriveToken));
+    }
+
+
+    private Task<Result<TokenState>> LoginAsync()
+    {
+        return ExecuteTokenOperationAsync(async () =>
+        {
+            var response = await _arasApiClient.GetTokenAsync(new LoginRequest
+            {
+                Username = _arasApiOptions.Username,
+                Password = _arasApiOptions.Password
+            });
+
+            return new TokenState
+            {
+                AccessToken = response.AccessToken,
+                ExpiresAtUtc = response.ExpiresAtUtc
+            };
+        });
+    }
+
+    private async Task<Result<string>> LoginAndPersistAsync(
+    CancellationToken cancellationToken)
+    {
+        var loginResult = await LoginAsync();
+
+        if (!loginResult.IsSuccess)
+            return Result<string>.Failure(loginResult.Errors!.First());
+
+        var token = loginResult.Value;
+
+        await PersistTokenAsync(token, cancellationToken);
+
+        return Result<string>.Success(token.AccessToken);
+    }
+
+    private Task<Result<TokenState>> RefreshAsync(RefreshTokenRequest refreshTokenRequest)
+    {
+        return ExecuteTokenOperationAsync(async () =>
+        {
+            var response = await _arasApiClient.RefreshTokenAsync(refreshTokenRequest);
+
+            return new TokenState
+            {
+                AccessToken = response.AccessToken,
+                ExpiresAtUtc = response.ExpiresAtUtc
+            };
+
+        });
+    }
+
+    private async Task<Result<string>> RefreshTokenAsync(
+    TokenState token,
+    CancellationToken cancellationToken)
+    {
+        var refreshResult = await RefreshAsync(new RefreshTokenRequest
+        {
+            Token = token.AccessToken
+        });
+
+        if (!refreshResult.IsSuccess)
+            return Result<string>.Failure(refreshResult.Errors!.First());
+
+        token.AccessToken = refreshResult.Value.AccessToken;
+        token.ExpiresAtUtc = refreshResult.Value.ExpiresAtUtc;
+
+        await PersistTokenAsync(token, cancellationToken);
+
+        return Result<string>.Success(token.AccessToken);
+    }
+
+    private async Task<TokenState?> LoadTokenAsync(CancellationToken cancellationToken)
+    {
+        var token = _tokenStore.Get();
+
+        if (token != null)
+            return token;
+
+        token = await _authTokenRepository.GetAsync(cancellationToken);
+
+        if (token != null)
+            _tokenStore.Save(token);
+
+        return token;
+    }
+
+    private async Task PersistTokenAsync(
+        TokenState token,
+        CancellationToken cancellationToken)
+    {
+        _tokenStore.Save(token);
+
+        await _authTokenRepository.UpsertAsync(token, cancellationToken);
+
+        await _unitOfWork.SaveChangesAsync(cancellationToken);
     }
 
     private bool IsTransient(Exception ex)
