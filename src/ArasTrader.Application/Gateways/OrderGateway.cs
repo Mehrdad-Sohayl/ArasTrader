@@ -5,7 +5,7 @@ using ArasTrader.Application.Interfaces;
 using ArasTrader.Application.Interfaces.Gateways;
 using Microsoft.Extensions.Logging;
 
-namespace ArasTrader.Infrastructure.Gateways;
+namespace ArasTrader.Application.Gateways;
 
 internal class OrderGateway : IOrderGateway
 {
