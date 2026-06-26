@@ -1,4 +1,4 @@
-﻿using ArasTrader.Application.Common;
+using ArasTrader.Application.Common;
 using ArasTrader.Application.Interfaces;
 using ArasTrader.Application.Interfaces.Repositories;
 using ArasTrader.Application.Models;
@@ -84,15 +84,15 @@ internal class TokenManager : ITokenManager
             {
                 return Result<TokenState>.Failure(
                     new ApplicationError(
-                        ApplicationErrorCodes.CannotRetriveToken,
+                        ApplicationErrorCodes.CannotRetrieveToken,
                         ex.Message));
             }
         }
 
         return Result<TokenState>.Failure(
             new ApplicationError(
-                ApplicationErrorCodes.CannotRetriveToken,
-                ApplicationErrorCodes.CannotRetriveToken));
+                ApplicationErrorCodes.CannotRetrieveToken,
+                ApplicationErrorCodes.CannotRetrieveToken));
     }
 
 

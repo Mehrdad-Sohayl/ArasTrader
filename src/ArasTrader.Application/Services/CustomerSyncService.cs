@@ -51,23 +51,21 @@ public class CustomerSyncService : ICustomerSyncService
                 lastName: c.LastName,
                 fatherName: c.FatherName,
                 birthCertificationNumber: c.BirthCertificationNumber,
-                registrationNumber: c.RegisterationNumber,
+                registrationNumber: c.RegistrationNumber,
                 birthDate: c.BirthDate,
                 branchName: c.BranchName,
                 mobileNumber: c.MobileNumber);
 
             await _customerRepository.AddAsync(customer, cancellationToken);
 
-
             var wallet = Wallet.Create(
                 customer: customer,
                 availableBalance: 0);
 
             await _walletRepository.AddAsync(wallet, cancellationToken);
-
-            await _unitOfWork.SaveChangesAsync();
-
         }
+
+        await _unitOfWork.SaveChangesAsync(cancellationToken);
 
         return Result<List<CustomerDto>>.Success(customers.Value);
     }
