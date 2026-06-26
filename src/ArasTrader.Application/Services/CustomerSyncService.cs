@@ -1,4 +1,4 @@
-﻿using ArasTrader.Application.Common;
+using ArasTrader.Application.Common;
 using ArasTrader.Application.DTOs;
 using ArasTrader.Application.Interfaces;
 using ArasTrader.Application.Interfaces.Repositories;
@@ -36,7 +36,7 @@ public class CustomerSyncService : ICustomerSyncService
 
         var customers = await _customerGateway.GetCustomerAsync(token.Value);
         if (!customers.IsSuccess)
-            return Result<List<CustomerDto>>.Failure(token.Errors.First());
+            return Result<List<CustomerDto>>.Failure(customers.Errors.First());
 
         foreach (var c in customers.Value)
         {

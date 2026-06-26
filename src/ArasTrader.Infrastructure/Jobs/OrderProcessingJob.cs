@@ -1,7 +1,5 @@
-﻿using ArasTrader.Application.Interfaces.OrderProcessing;
-using ArasTrader.Infrastructure.Options;
+using ArasTrader.Application.Interfaces.OrderProcessing;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
 
 namespace ArasTrader.Infrastructure.Jobs;
 
@@ -22,10 +20,16 @@ public class OrderProcessingJob
     {
         var result = await _orderProcessingService.ProcessPendingOrdersAsync(cancellationToken);
 
-        _logger.LogInformation($"Order processing finished. " +
-            $"Claimed={result.Value.ClaimedCount}" +
-            $" Completed={result.Value.CompletedCount}" +
-            $" Rejected ={result.Value.RejectedCount}" +
-            $" Failed ={result.Value.FailedCount}");
+        if (!result.IsSuccess)
+        {
+            _logger.LogError("Order processing failed: {Errors}", string.Join("; ", result.Errors.Select(e => e.Message)));
+            return;
+        }
+
+        _logger.LogInformation("Order processing finished. Claimed={ClaimedCount} Completed={CompletedCount} Rejected={RejectedCount} Failed={FailedCount}",
+            result.Value.ClaimedCount,
+            result.Value.CompletedCount,
+            result.Value.RejectedCount,
+            result.Value.FailedCount);
     }
 }

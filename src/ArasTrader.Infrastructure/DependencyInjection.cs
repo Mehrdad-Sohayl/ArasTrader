@@ -1,11 +1,9 @@
-﻿using ArasTrader.Application.Interfaces;
-using ArasTrader.Application.Interfaces.Gateways;
+using ArasTrader.Application.Interfaces;
 using ArasTrader.Application.Interfaces.OrderProcessing;
 using ArasTrader.Application.Interfaces.Repositories;
 using ArasTrader.Infrastructure.Auth;
 using ArasTrader.Infrastructure.Caching;
 using ArasTrader.Infrastructure.ExternalApis.ArasApi;
-using ArasTrader.Infrastructure.Gateways;
 using ArasTrader.Infrastructure.Jobs;
 using ArasTrader.Infrastructure.Options;
 using ArasTrader.Infrastructure.Persistence;
@@ -72,10 +70,6 @@ public static class DependencyInjection
                 storage.UseNpgsqlConnection(
                     configuration.GetConnectionString("DefaultConnection")));
         });
-        #endregion
-
-        #region Gateways
-        services.AddScoped<IOrderGateway, OrderGateway>();
         #endregion
 
         return services;
