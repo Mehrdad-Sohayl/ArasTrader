@@ -575,25 +575,36 @@ Access tokens are obtained through the external API and managed by `TokenManager
 
 Token retrieval follows the sequence below:
 
-```text id="9x7h2v"
+```text
 Memory Cache
       ↓
 Database
       ↓
+Refresh Token
+      ↓
 External Login
 ```
 
-When a valid token is available, it is reused. Otherwise, a new authentication request is issued to the external API.
+When an authenticated request requires an access token, the token manager follows these steps:
 
-A 30-second expiration buffer is applied when validating token lifetime to reduce the risk of using near-expired tokens.
+1. Attempt to retrieve the token from the in-memory cache.
+2. If not found, load the persisted token from PostgreSQL.
+3. If the token is still valid, cache it and reuse it.
+4. If the token is close to expiration, attempt to refresh it using the previously issued token.
+5. If the refresh operation fails (for example, because the previous token has expired), authenticate again using the configured credentials.
+6. Persist the newly obtained token and update the in-memory cache.
+
+A 5-minute expiration buffer is applied when validating token lifetime to reduce the risk of using near-expired tokens.
+
+---
 
 ### Token Storage
 
-Access tokens are stored in two locations:
+Access tokens are stored using a hybrid persistence strategy.
 
 #### Memory Cache
 
-Used for fast token retrieval during normal application execution.
+The in-memory cache is used for fast token retrieval during normal application execution.
 
 Current implementation:
 
@@ -604,6 +615,8 @@ Current implementation:
 
 Tokens are also persisted in PostgreSQL through `AuthTokenRepository`.
 
+Only a single token record is maintained in the database using an upsert operation.
+
 Stored information includes:
 
 * Access token
@@ -611,24 +624,30 @@ Stored information includes:
 * Creation timestamp
 * Modification timestamp
 
-Persisting tokens allows token reuse after application restarts without requiring immediate re-authentication.
+Persisting the token enables the application to preserve authentication state across restarts and continue using the refresh-token flow without requiring an immediate login.
 
-### Token Renewal
+---
 
-When no valid token is available in either cache or database:
+### Token Lifecycle
 
-1. Authentication is performed against the external API
-2. A new access token is obtained
-3. The token is stored in memory
-4. The token is persisted in the database
+The token manager supports both token refresh and full authentication.
 
-The implementation performs a new login request when no valid access token is available.
+When a token is approaching expiration:
 
-No refresh token flow is implemented.
+1. The previously issued token is sent to the external refresh endpoint.
+2. If the refresh operation succeeds, the new token is persisted and cached.
+3. If the refresh operation fails, a new authentication request is issued using the configured credentials.
+4. The newly obtained token is persisted and cached.
+
+This strategy minimizes unnecessary authentication requests while allowing automatic recovery from expired sessions.
+
+---
 
 ### Concurrency Protection
 
-Token acquisition is protected using `SemaphoreSlim` to prevent multiple concurrent authentication requests from attempting to obtain a new token simultaneously.
+Token acquisition is protected using `SemaphoreSlim` to prevent multiple concurrent authentication requests from attempting to obtain or refresh a token simultaneously.
+
+---
 
 ### Error Handling
 
@@ -644,6 +663,8 @@ Retry characteristics:
 * Incremental delay between attempts
 
 Non-transient failures are returned to the caller without retry.
+
+---
 
 ### Customer Synchronization
 
@@ -1018,71 +1039,57 @@ docker compose down -v
 
 ---
 
-## Trade-offs and Limitations
+## Design Decisions and Scope
 
-This project was implemented as a technical assignment within approximately four days.
+This project was implemented as a technical assignment with a primary focus on correctness, maintainability, and extensibility rather than feature completeness.
 
-### Idempotency Status
+The following design decisions were made intentionally.
 
-The assignment requested a description of the idempotency strategy.
+### Clean Architecture
 
-No idempotency mechanism is implemented in the current solution.
-
-The primary focus was correctness of the core workflow, concurrency handling, background processing, and maintainable code structure. Several design decisions were made to keep the implementation aligned with the assignment scope and available development time.
-
-### Background Processing
-
-Hangfire was selected because it was explicitly required by the assignment.
-
-The current implementation uses Hangfire recurring jobs and PostgreSQL-backed job storage for asynchronous order processing.
-
-Distributed messaging platforms such as RabbitMQ or Kafka were not introduced because they were not part of the assignment requirements and would have added operational and architectural complexity beyond the intended scope.
-
-### Architecture
-
-A layered architecture was chosen to separate domain logic, application workflows, infrastructure concerns, and hosting applications.
-
-The solution separates domain logic, application workflows, infrastructure concerns, and hosting applications into distinct projects.
-
-### Idempotency
-
-Idempotency was not implemented.
-
-The system includes concurrency protection through optimistic concurrency control and atomic order claiming, but it does not provide request deduplication or idempotency-key based processing.
-
-Implementation effort was prioritized toward order processing, concurrency handling, and failure recovery.
+The solution follows a layered architecture to separate domain logic, application workflows, infrastructure concerns, and hosting applications. Business rules remain isolated from external frameworks and infrastructure dependencies.
 
 ### Authentication
 
-The current implementation supports:
+Authentication is handled by a dedicated `TokenManager` that supports:
 
-- Access token persistence
-- Access token reuse
-- Re-authentication when required
+* Access token caching
+* PostgreSQL-backed token persistence
+* Automatic token refresh
+* Automatic re-authentication when refresh is no longer possible
 
-A refresh token flow is not implemented.
+This approach minimizes unnecessary login requests while allowing authentication state to survive application restarts.
 
-### API Versioning
+### Order Gateway
 
-API versioning is not implemented because it was outside the scope of the assignment.
+An Order Gateway layer has been introduced in front of the order application services to provide a single entry point for order operations.
 
-### Distributed Messaging
+The current implementation supports REST API requests and provides an extension point for future order channels such as FIX, message queues, partner integrations, or gRPC without impacting the business layer.
 
-Distributed messaging infrastructure such as RabbitMQ or Kafka is not implemented.
+### Order Processing
 
-Background processing is handled through Hangfire recurring jobs.
+Background order processing is implemented using Hangfire with PostgreSQL storage, as required by the assignment.
 
-### CQRS and Event Sourcing
+Atomic order claiming is implemented using PostgreSQL row locking (`FOR UPDATE SKIP LOCKED`) to prevent multiple workers from processing the same order concurrently.
 
-CQRS and Event Sourcing are not implemented.
+Timed-out `InProgress` orders are automatically reclaimed to support worker recovery scenarios.
 
-The current solution uses a simpler CRUD-oriented approach that was considered sufficient for the assignment scope.
+### Concurrency
 
-### Distributed Cache
+Optimistic concurrency control is used for wallet and order updates to protect financial consistency during concurrent modifications.
 
-Redis or other distributed caching solutions are not implemented.
+Order claiming is handled separately through database row locking to guarantee exclusive ownership during background processing.
 
-The current implementation uses in-memory caching for token management.
-                         
+### Out of Scope
+
+The following capabilities were intentionally left outside the scope of this assignment:
+
+* Request idempotency
+* API versioning
+* Distributed messaging platforms (RabbitMQ, Kafka)
+* CQRS and Event Sourcing
+* Distributed caching (Redis)
+
+These features can be introduced in future iterations without requiring significant architectural changes.
 
 ---
